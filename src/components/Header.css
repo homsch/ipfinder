@@ -5,3 +5,9 @@
   height: auto;
   margin: 32px auto 0;
 }
+
+@media (prefers-color-scheme: dark) {
+  .app-logo {
+    filter: invert(1);
+  }
+}

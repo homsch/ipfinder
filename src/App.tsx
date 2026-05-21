@@ -10,7 +10,7 @@ function App() {
     useEffect(() => {
         if(firstRun.current){
             firstRun.current = false;
-              fetch("https://api-ipfinder.homsch-hopper.workers.dev?format=json")
+              fetch("https://api.ipify.org/?format=json")
                     .then(res => res.json())
                     .then(data => setIp4(data.ip))
                     .catch(error => console.log(error.message));

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A small React + TypeScript single-page app (`ipfinder.de`) that displays the visitor's public IPv4 address. The IP is fetched at runtime from a separate Cloudflare Worker (`https://api-ipfinder.homsch-hopper.workers.dev`) — that backend lives in another repository. This repo contains only the static frontend.
+A small React + TypeScript single-page app (`ipfinder.de`) that displays the visitor's public IPv4 address. The IP is currently fetched at runtime from the public `https://api.ipify.org/?format=json` service as an interim solution. In the future the app will switch to an own backend under `https://api.ipfinder.de` (a Cloudflare Worker that lives in another repository) — that subdomain still needs to be set up. This repo contains only the static frontend.
 
 The static build is deployed to **Cloudflare Pages** (project name `ipfinder`, see `wrangler.jsonc`).
 
@@ -32,7 +32,7 @@ There are no unittests because the project ist very small. ESLint is configured 
 ## Architecture notes
 
 - **Entry chain:** `index.html` → `src/main.tsx` (StrictMode root) → `src/App.tsx`. App is intentionally minimal; data is fetched once via `useEffect` guarded by a `useRef` flag to avoid the StrictMode double-invoke.
-- **Backend coupling:** The fetch URL in `src/App.tsx` is hardcoded. Treat the Worker URL as the API contract — there is no proxy, no env var, no fallback. CORS must be allowed by the Worker for both the production origin and `localhost:5173`/`:8443`.
+- **Backend coupling:** The fetch URL in `src/App.tsx` is hardcoded — currently `https://api.ipify.org/?format=json` as an interim solution until `https://api.ipfinder.de` is set up. There is no proxy, no env var, no fallback. Once the own Worker is live under `api.ipfinder.de`, swap the URL there; CORS must then be allowed by the Worker for both the production origin and `localhost:5173`/`:8443`.
 - **TypeScript:** Project references — `tsconfig.app.json` covers `src/`, `tsconfig.node.json` covers Vite/tooling config. The root `tsconfig.json` only references the two; `tsc -b` is what `npm run build` invokes before Vite.
 - **Cloudflare Pages output:** `pages_build_output_dir` is `./dist`. `vite.config.ts` sets `base: "/"`, so do not change it without updating Pages config.
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A small React + TypeScript single-page app (`ipfinder.de`) that displays the visitor's public IPv4 address. The IP is currently fetched at runtime from the public `https://api.ipify.org/?format=json` service as an interim solution. In the future the app will switch to an own backend under `https://api.ipfinder.de` (a Cloudflare Worker that lives in another repository) — that subdomain still needs to be set up. This repo contains only the static frontend.
+A small React + TypeScript single-page app (`ipfinder.de`) that displays the visitor's public IP address. The actual IP (v4 or v6) is fetched at runtime from the own Cloudflare Worker under `https://api.ipfinder.de` — that backend lives in another repository. When the actual IP is IPv6, the app additionally fetches `https://api.ipify.org/?format=json` (IPv4-only DNS, no AAAA) to show the visitor's IPv4 underneath; if ipify also returns IPv6 or the call fails, the IPv4 line shows "no IPv4 available". This repo contains only the static frontend.
 
 The static build is deployed to **Cloudflare Pages** (project name `ipfinder`, see `wrangler.jsonc`).
 
@@ -32,7 +32,7 @@ There are no unittests because the project ist very small. ESLint is configured 
 ## Architecture notes
 
 - **Entry chain:** `index.html` → `src/main.tsx` (StrictMode root) → `src/App.tsx`. App is intentionally minimal; data is fetched once via `useEffect` guarded by a `useRef` flag to avoid the StrictMode double-invoke.
-- **Backend coupling:** The fetch URL in `src/App.tsx` is hardcoded — currently `https://api.ipify.org/?format=json` as an interim solution until `https://api.ipfinder.de` is set up. There is no proxy, no env var, no fallback. Once the own Worker is live under `api.ipfinder.de`, swap the URL there; CORS must then be allowed by the Worker for both the production origin and `localhost:5173`/`:8443`.
+- **Backend coupling:** The fetch URLs in `src/App.tsx` are hardcoded — primary `https://api.ipfinder.de/?format=json` (own Worker), and `https://api.ipify.org/?format=json` as a secondary call only when the primary returned an IPv6 address. There is no proxy, no env var, no retry. CORS must be allowed by the Worker for both the production origin and `localhost:5173`/`:8443`. IPv6-vs-IPv4 is detected by `ip.includes(":")` — no library, IPv4 strings never contain colons.
 - **TypeScript:** Project references — `tsconfig.app.json` covers `src/`, `tsconfig.node.json` covers Vite/tooling config. The root `tsconfig.json` only references the two; `tsc -b` is what `npm run build` invokes before Vite.
 - **Cloudflare Pages output:** `pages_build_output_dir` is `./dist`. `vite.config.ts` sets `base: "/"`, so do not change it without updating Pages config.
 

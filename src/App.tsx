@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 
 function App() {
     const [actualIp, setActualIp] = useState<string>();
+    const [proxies, setProxies] = useState<string[]>([]);
     const [ipv4Fallback, setIpv4Fallback] = useState<string>();
     const [ipv6Fallback, setIpv6Fallback] = useState<string>();
     const firstRun = useRef(true);
@@ -17,6 +18,7 @@ function App() {
                 .then(data => {
                     const ip: string = data.ip;
                     setActualIp(ip);
+                    setProxies(Array.isArray(data.proxies) ? data.proxies : []);
                     if (ip.includes(":")) {
                         fetch("https://api.ipify.org/?format=json")
                             .then(res => res.json())
@@ -55,6 +57,18 @@ function App() {
                 <>
                     <h1>your IPv6</h1>
                     <p className={`ip${ipv6Fallback === "no IPv6 available" ? " unavailable" : ""}`}>{ipv6Fallback}</p>
+                </>
+            )}
+            {actualIp && (
+                <>
+                    <h1>visible proxies</h1>
+                    {proxies.length > 0 ? (
+                        proxies.map((proxy, i) => (
+                            <p key={i} className="ip">{proxy}</p>
+                        ))
+                    ) : (
+                        <p className="ip unavailable">no visible proxy</p>
+                    )}
                 </>
             )}
             <Footer />
